@@ -1,42 +1,37 @@
 import React, { useState } from 'react';
-import axios from 'axios';
-import { Box, Button, TextField, Typography } from '@mui/material';
 
 export default function SignUp({ onSignUp }) {
-  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     try {
-      await axios.post('http://localhost:8080/api/auth/signup', {
-        username,
-        email,
-        passwordHash: password,
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
       });
-      setSuccess('Registration successful!');
-      setError('');
-      if (onSignUp) onSignUp(username);
+      const data = await res.json();
+      if (data.id) {
+        onSignUp(email);
+      } else {
+        setError('Sign up failed');
+      }
     } catch (err) {
-      setError('Username or email already exists');
-      setSuccess('');
+      setError('Network error');
     }
   };
 
   return (
-    <Box sx={{ maxWidth: 400, mx: 'auto', mt: 6 }}>
-      <Typography variant="h5" align="center" gutterBottom>Sign Up</Typography>
-      <Box component="form" onSubmit={handleSubmit}>
-        <TextField label="Username" fullWidth margin="normal" value={username} onChange={e => setUsername(e.target.value)} />
-        <TextField label="Email" fullWidth margin="normal" value={email} onChange={e => setEmail(e.target.value)} />
-        <TextField label="Password" type="password" fullWidth margin="normal" value={password} onChange={e => setPassword(e.target.value)} />
-        {error && <Typography color="error">{error}</Typography>}
-        {success && <Typography color="primary">{success}</Typography>}
-        <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>Sign Up</Button>
-      </Box>
-    </Box>
+    <form onSubmit={handleSubmit} className="auth-form">
+      <h2>Sign Up</h2>
+      <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" required />
+      <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" required />
+      <button type="submit">Sign Up</button>
+      {error && <div className="error">{error}</div>}
+    </form>
   );
 }

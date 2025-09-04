@@ -40,7 +40,14 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         // APNE FRONTEND KE SAHI URLs YAHAAN DAAL
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "https://simple-java-frontend.vercel.app", "https://simple-java-frontend-git-main-riyamouns-projects.vercel.app"));
+        configuration.setAllowedOrigins(List.of(
+            "http://localhost:5173",
+            "https://simple-java-frontend.vercel.app",
+            "https://simple-java-frontend-git-main-riyamouns-projects.vercel.app",
+            "https://simple-java-frontendp.vercel.app",
+            "https://simple-java-frontendp-git-main-riyamouns-projects.vercel.app",
+            "https://simple-java-frontendp-dqr3q1lf7-riyamouns-projects.vercel.app"
+        ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

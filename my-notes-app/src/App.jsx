@@ -1,39 +1,83 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { Card, CardContent, Typography, Box } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import NoteList from './NoteList.jsx';
+import NoteForm from './NoteForm.jsx';
+import SharedNote from './SharedNote.jsx';
+import Login from './Login.jsx';
+import SignUp from './SignUp.jsx';
+import './App.css';
 
-export default function SharedNote({ uuid }) {
-  const [note, setNote] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+function App() {
+  const [user, setUser] = useState(null);
+  const [showLogin, setShowLogin] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const apiUrl = import.meta.env.VITE_API_BASE_URL;
-    axios.get(`${apiUrl}/api/notes/share/${uuid}`)
-      .then(res => {
-        setNote(res.data);
-      })
-      .catch(err => {
-        console.error(err);
-        setError(true);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [uuid]);
+    // Persist user session
+    const token = localStorage.getItem('token');
+    const username = localStorage.getItem('username');
+    if (token && username) {
+      setUser(username);
+    }
+  }, []);
 
-  if (loading) return <Box sx={{ mt: 6, textAlign: 'center' }}><Typography variant="h6">Loading...</Typography></Box>;
-  if (error || !note) return <Box sx={{ mt: 6, textAlign: 'center' }}><Typography variant="h6">404: Note Not Found</Typography></Box>;
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+  };
+
+  const handleLogin = (username) => {
+    setUser(username);
+    localStorage.setItem('username', username);
+    setShowLogin(true);
+    setError("");
+  };
+
+  const handleSignUp = (username) => {
+    setUser(username);
+    localStorage.setItem('username', username);
+    setShowLogin(true);
+    setError("");
+  };
+
+  if (!user) {
+    return (
+      <div className="auth-container">
+        {showLogin ? (
+          <>
+            <Login onLogin={handleLogin} setError={setError} />
+            <p>Don't have an account? <button onClick={() => setShowLogin(false)}>Sign Up</button></p>
+          </>
+        ) : (
+          <>
+            <SignUp onSignUp={handleSignUp} setError={setError} />
+            <p>Already have an account? <button onClick={() => setShowLogin(true)}>Login</button></p>
+          </>
+        )}
+      </div>
+    );
+  }
 
   return (
-    // ... baaki ka code same hai
-    <Box sx={{ mt: 6, display: 'flex', justifyContent: 'center' }}>
-      <Card sx={{ minWidth: 350, boxShadow: 4, borderRadius: 3, bgcolor: '#e3f2fd' }}>
-        <CardContent>
-          <Typography variant="h5" color="primary" gutterBottom>{note.title}</Typography>
-          <Typography variant="body1">{note.content}</Typography>
-        </CardContent>
-      </Card>
-    </Box>
+    <BrowserRouter>
+      <div className="main-container">
+        <header>
+          <h1>My Notes App</h1>
+          <div>
+            Welcome, {user}! <button onClick={handleLogout}>Logout</button>
+          </div>
+        </header>
+        <main>
+          <NoteForm owner={user} />
+          <NoteList owner={user} />
+        </main>
+        <Routes>
+          <Route path="/share/:uuid" element={<SharedNote />} />
+        </Routes>
+      </div>
+    </BrowserRouter>
   );
 }
+
+export default App;
