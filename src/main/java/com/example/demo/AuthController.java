@@ -1,13 +1,17 @@
+
 package com.example.demo;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "https://simple-java-frontendl.vercel.app")
+@CrossOrigin // CrossOrigin yahan zaroori hai
 public class AuthController {
 
     @Autowired
@@ -17,17 +21,28 @@ public class AuthController {
     private PasswordEncoder passwordEncoder;
 
     @PostMapping("/signup")
-    public User signup(@RequestBody User user) {
+    public ResponseEntity<?> signup(@RequestBody User user) {
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "Email already exists"));
+        }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return userRepository.save(user);
+        userRepository.save(user);
+        return ResponseEntity.ok(Map.of("message", "User created successfully!"));
     }
 
     @PostMapping("/login")
-    public Map<String, String> login(@RequestBody User user) {
-        User dbUser = userRepository.findByEmail(user.getEmail()).orElse(null);
-        if (dbUser != null && passwordEncoder.matches(user.getPassword(), dbUser.getPassword())) {
-            return Map.of("message", "Login successful!", "user", dbUser.getEmail());
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+        Optional<User> userOptional = userRepository.findByEmail(loginRequest.getEmail());
+
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            // SAHI TAREEKA: raw password ko hashed password se compare karo
+            if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+                // In a real app, generate JWT here. For now, return success.
+                return ResponseEntity.ok(Map.of("message", "Login successful!", "userEmail", user.getEmail()));
+            }
         }
-        return Map.of("message", "Invalid credentials");
+        // Agar user nahi mila ya password galat hai
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid credentials"));
     }
 }
