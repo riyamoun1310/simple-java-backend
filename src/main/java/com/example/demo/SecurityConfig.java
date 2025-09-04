@@ -1,4 +1,5 @@
 
+
 package com.example.demo;
 
 import org.springframework.context.annotation.Bean;
@@ -13,6 +14,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -23,13 +25,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors(withDefaults()) // Yeh CORS ko enable karega
+            .cors(withDefaults()) // Yeh CORS configuration ko apply karega
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**", "/api/notes/share/**").permitAll() // Login/Signup/Share public rahega
-                .anyRequest().authenticated()
+                // Login, Signup, aur Share public rahenge
+                .requestMatchers("/api/auth/**", "/api/notes/share/**").permitAll() 
+                .anyRequest().authenticated() // Baaki sabke liye login zaroori
             )
-            .httpBasic(withDefaults()); // Simple auth, isko hum JWT se replace karenge
+            .httpBasic(withDefaults());
         return http.build();
     }
 
@@ -37,7 +40,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         // APNE FRONTEND KE SAHI URLs YAHAAN DAAL
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "https://simple-java-frontend.vercel.app", "https://simple-java-frontendo.vercel.app"));
+        configuration.setAllowedOrigins(List.of("http://localhost:5173", "https://simple-java-frontend.vercel.app", "https://simple-java-frontend-git-main-riyamouns-projects.vercel.app"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
